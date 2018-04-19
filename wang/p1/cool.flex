@@ -165,13 +165,12 @@ f(?i:ALSE)      {
 
 {INTEGER}		{
 	cool_yylval.symbol = inttable.add_string(yytext);
-	len++;
 	return INT_CONST;
 }
 
-{DARROW}		{ len++; return (DARROW); }
-{LE}        		{ len++; return (LE); }
-{ASSIGN}                { len++; return (ASSIGN); }
+{DARROW}		{ return (DARROW); }
+{LE}        		{ return (LE); }
+{ASSIGN}                { return (ASSIGN); }
 
 {TYPEID}		{
 	cool_yylval.symbol = stringtable.add_string(yytext);
@@ -227,7 +226,7 @@ f(?i:ALSE)      {
 
 <STRING>\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 4";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -317,7 +316,7 @@ f(?i:ALSE)      {
 
 <STRING>\\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 3";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
