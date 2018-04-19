@@ -184,22 +184,22 @@ f(?i:ALSE)      {
 }
 
 
-"+"                     { len++; return('+'); } 
-"/"                     { len++; return('/'); } 
-"-"                     { len++; return('-'); } 
-"*"                     { len++; return('*'); } 
-"="                     { len++; return('='); } 
-"<"                     { len++; return('<'); } 
-"."                     { len++; return('.'); } 
-"~"                     { len++; return('~'); } 
-","                     { len++; return(','); } 
-";"                     { len++; return(';'); } 
-":"                     { len++; return(':'); } 
-"("                     { len++; return('('); } 
-")"                     { len++; return(')'); } 
-"@"                     { len++; return('@'); } 
-"{"                     { len++; return('{'); } 
-"}"                     { len++; return('}'); } 
+"+"                     { return('+'); } 
+"/"                     { return('/'); } 
+"-"                     { return('-'); } 
+"*"                     { return('*'); } 
+"="                     { return('='); } 
+"<"                     { return('<'); } 
+"."                     { return('.'); } 
+"~"                     { return('~'); } 
+","                     { return(','); } 
+";"                     { return(';'); } 
+":"                     { return(':'); } 
+"("                     { return('('); } 
+")"                     { return(')'); } 
+"@"                     { return('@'); } 
+"{"                     { return('{'); } 
+"}"                     { return('}'); } 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
@@ -251,7 +251,7 @@ f(?i:ALSE)      {
 
 <STRING>\\b {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 5";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -261,7 +261,7 @@ f(?i:ALSE)      {
 
 <STRING>\\t {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 6";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -270,7 +270,7 @@ f(?i:ALSE)      {
 }
 <STRING>\\f {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 7";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -279,7 +279,7 @@ f(?i:ALSE)      {
 }
 <STRING>\\. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 2";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -298,8 +298,8 @@ f(?i:ALSE)      {
 
 <STRING>. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 1";
-		BEGIN(0);
+		cool_yylval.error_msg = "String constant too long";
+		BEGIN(STRING_ERR);
 		return ERROR;
 	}
 	len++;
