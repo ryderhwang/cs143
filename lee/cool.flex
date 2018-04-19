@@ -45,7 +45,7 @@ extern YYSTYPE cool_yylval;
 
 int c_d = 0;
 int len ;
-
+int err=0;
 %}
 
 /*
@@ -165,13 +165,12 @@ f(?i:ALSE)      {
 
 {INTEGER}		{
 	cool_yylval.symbol = inttable.add_string(yytext);
-	len++;
 	return INT_CONST;
 }
 
-{DARROW}		{ len++; return (DARROW); }
-{LE}        		{ len++; return (LE); }
-{ASSIGN}                { len++; return (ASSIGN); }
+{DARROW}		{ return (DARROW); }
+{LE}        		{ return (LE); }
+{ASSIGN}                { return (ASSIGN); }
 
 {TYPEID}		{
 	cool_yylval.symbol = stringtable.add_string(yytext);
@@ -184,22 +183,22 @@ f(?i:ALSE)      {
 }
 
 
-"+"                     { len++; return('+'); } 
-"/"                     { len++; return('/'); } 
-"-"                     { len++; return('-'); } 
-"*"                     { len++; return('*'); } 
-"="                     { len++; return('='); } 
-"<"                     { len++; return('<'); } 
-"."                     { len++; return('.'); } 
-"~"                     { len++; return('~'); } 
-","                     { len++; return(','); } 
-";"                     { len++; return(';'); } 
-":"                     { len++; return(':'); } 
-"("                     { len++; return('('); } 
-")"                     { len++; return(')'); } 
-"@"                     { len++; return('@'); } 
-"{"                     { len++; return('{'); } 
-"}"                     { len++; return('}'); } 
+"+"                     { return('+'); } 
+"/"                     { return('/'); } 
+"-"                     { return('-'); } 
+"*"                     { return('*'); } 
+"="                     { return('='); } 
+"<"                     { return('<'); } 
+"."                     { return('.'); } 
+"~"                     { return('~'); } 
+","                     { return(','); } 
+";"                     { return(';'); } 
+":"                     { return(':'); } 
+"("                     { return('('); } 
+")"                     { return(')'); } 
+"@"                     { return('@'); } 
+"{"                     { return('{'); } 
+"}"                     { return('}'); } 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
@@ -227,8 +226,9 @@ f(?i:ALSE)      {
 
 <STRING>\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 4";
-		BEGIN(STRING_ERR);
+		cool_yylval.error_msg = "String constant too long";
+		BEGIN(0);
+		err++;
 		return ERROR;
 	}
 	len++;
@@ -251,7 +251,7 @@ f(?i:ALSE)      {
 
 <STRING>\\b {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 5";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -261,7 +261,7 @@ f(?i:ALSE)      {
 
 <STRING>\\t {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 6";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -270,7 +270,7 @@ f(?i:ALSE)      {
 }
 <STRING>\\f {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 7";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -279,27 +279,38 @@ f(?i:ALSE)      {
 }
 <STRING>\\. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 2";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
 	len++;
 	strcat(string_buf, (yytext+1) );
 }
-<STRING>\n {
+<STRING>\n {	
+	if( err != 0) {
+
+	BEGIN(0);
+	curr_lineno++;
+	memset(string_buf, '\0', sizeof(string_buf));
+	err =0;
+
+	}
+	else {
 	cool_yylval.error_msg = "Unterminated string constant";
 	BEGIN(0);
 	curr_lineno++;
 	memset(string_buf, '\0', sizeof(string_buf));
 	return ERROR;
+	}
 }
 
 
 
 <STRING>. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 1";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(0);
+		err++;
 		return ERROR;
 	}
 	len++;
@@ -317,7 +328,7 @@ f(?i:ALSE)      {
 
 <STRING>\\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long 3";
+		cool_yylval.error_msg = "String constant too long";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -327,7 +338,6 @@ f(?i:ALSE)      {
 }
 
 <STRING_ERR>.[\"\n] {
-	curr_lineno++;
 	BEGIN(0);
 }
 
@@ -335,10 +345,16 @@ f(?i:ALSE)      {
 	BEGIN(0);
 }
 
-<STRING_ERR>\" {
-	BEGIN(0);
-}
+<STRING_ERR>\" {	
+    if( err !=0) {
+	curr_lineno++;
+	}
+	else {
 
+	BEGIN(0);
+    }
+
+}
 <STRING_ERR>\n
 {
 		BEGIN(0);
