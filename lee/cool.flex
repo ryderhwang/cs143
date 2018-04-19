@@ -227,7 +227,7 @@ f(?i:ALSE)      {
 
 <STRING>\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 4";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -242,14 +242,6 @@ f(?i:ALSE)      {
 }
 
 
-<STRING>\n {
-	cool_yylval.error_msg = "Unterminated string constant";
-	BEGIN(0);
-	curr_lineno++;
-	memset(string_buf, '\0', sizeof(string_buf));
-	return ERROR;
-}
-
 <STRING>\0 {
 	cool_yylval.error_msg = "String contains null character";
 	string_buf[0] = '\0';
@@ -259,7 +251,7 @@ f(?i:ALSE)      {
 
 <STRING>\\b {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 5";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -269,7 +261,7 @@ f(?i:ALSE)      {
 
 <STRING>\\t {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 6";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -278,7 +270,7 @@ f(?i:ALSE)      {
 }
 <STRING>\\f {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 7";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -287,16 +279,26 @@ f(?i:ALSE)      {
 }
 <STRING>\\. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
-		BEGIN(0);
+		cool_yylval.error_msg = "String constant too long 2";
+		BEGIN(STRING_ERR);
 		return ERROR;
 	}
 	len++;
 	strcat(string_buf, (yytext+1) );
 }
+<STRING>\n {
+	cool_yylval.error_msg = "Unterminated string constant";
+	BEGIN(0);
+	curr_lineno++;
+	memset(string_buf, '\0', sizeof(string_buf));
+	return ERROR;
+}
+
+
+
 <STRING>. {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 1";
 		BEGIN(0);
 		return ERROR;
 	}
@@ -315,7 +317,7 @@ f(?i:ALSE)      {
 
 <STRING>\\\n {
 	if(len + 1 >= MAX_STR_CONST) {
-		cool_yylval.error_msg = "String constant too long";
+		cool_yylval.error_msg = "String constant too long 3";
 		BEGIN(STRING_ERR);
 		return ERROR;
 	}
@@ -329,6 +331,10 @@ f(?i:ALSE)      {
 	BEGIN(0);
 }
 
+<STRING_ERR><<EOF>> {
+	BEGIN(0);
+}
+
 <STRING_ERR>\" {
 	BEGIN(0);
 }
@@ -336,7 +342,6 @@ f(?i:ALSE)      {
 <STRING_ERR>\n
 {
 		BEGIN(0);
-		curr_lineno++;
 }
 
 
