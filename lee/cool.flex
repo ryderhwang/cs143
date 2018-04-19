@@ -44,7 +44,7 @@ extern YYSTYPE cool_yylval;
  */
 
 int c_d = 0;
-int len = 0;
+int len ;
 
 %}
 
@@ -165,12 +165,13 @@ f(?i:ALSE)      {
 
 {INTEGER}		{
 	cool_yylval.symbol = inttable.add_string(yytext);
+	len++;
 	return INT_CONST;
 }
 
-{DARROW}		{ return (DARROW); }
-{LE}        		{ return (LE); }
-{ASSIGN}                { return (ASSIGN); }
+{DARROW}		{ len++; return (DARROW); }
+{LE}        		{ len++; return (LE); }
+{ASSIGN}                { len++; return (ASSIGN); }
 
 {TYPEID}		{
 	cool_yylval.symbol = stringtable.add_string(yytext);
@@ -183,23 +184,22 @@ f(?i:ALSE)      {
 }
 
 
-"+"                     { return('+'); } 
-"/"                     { return('/'); } 
-"-"                     { return('-'); } 
-"*"                     { return('*'); } 
-"="                     { return('='); } 
-"<"                     { return('<'); } 
-"."                     { return('.'); } 
-"~"                     { return('~'); } 
-","                     { return(','); } 
-";"                     { return(';'); } 
-":"                     { return(':'); } 
-"("                     { return('('); } 
-")"                     { return(')'); } 
-"@"                     { return('@'); } 
-"{"                     { return('{'); } 
-"}"                     { return('}'); } 
-"%"			{ return('%'); }
+"+"                     { len++; return('+'); } 
+"/"                     { len++; return('/'); } 
+"-"                     { len++; return('-'); } 
+"*"                     { len++; return('*'); } 
+"="                     { len++; return('='); } 
+"<"                     { len++; return('<'); } 
+"."                     { len++; return('.'); } 
+"~"                     { len++; return('~'); } 
+","                     { len++; return(','); } 
+";"                     { len++; return(';'); } 
+":"                     { len++; return(':'); } 
+"("                     { len++; return('('); } 
+")"                     { len++; return(')'); } 
+"@"                     { len++; return('@'); } 
+"{"                     { len++; return('{'); } 
+"}"                     { len++; return('}'); } 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
@@ -234,6 +234,13 @@ f(?i:ALSE)      {
 	len++;
 	strcat(string_buf, "\n");
 }
+<STRING>\\\0 {
+	cool_yylval.error_msg = "String contains null character";
+	memset(string_buf, '\0', sizeof(string_buf));
+	BEGIN(STRING_ERR);
+	return ERROR;
+}
+
 
 <STRING>\n {
 	cool_yylval.error_msg = "Unterminated string constant";
@@ -246,13 +253,6 @@ f(?i:ALSE)      {
 <STRING>\0 {
 	cool_yylval.error_msg = "String contains null character";
 	string_buf[0] = '\0';
-	BEGIN(STRING_ERR);
-	return ERROR;
-}
-
-<STRING>\\\0 {
-	cool_yylval.error_msg = "String cannot contain escaped null byte";
-	memset(string_buf, '\0', sizeof(string_buf));
 	BEGIN(STRING_ERR);
 	return ERROR;
 }
@@ -313,9 +313,6 @@ f(?i:ALSE)      {
 }
 
 
-
-
-
 <STRING>\\\n {
 	if(len + 1 >= MAX_STR_CONST) {
 		cool_yylval.error_msg = "String constant too long";
@@ -323,23 +320,25 @@ f(?i:ALSE)      {
 		return ERROR;
 	}
 	curr_lineno++;
+	len++;
 	strcat(string_buf, "\n");
 }
 
+<STRING_ERR>.[\"\n] {
+	curr_lineno++;
+	BEGIN(0);
+}
 
 <STRING_ERR>\" {
 	BEGIN(0);
 }
 
-<STRING_ERR>\\\n {
-		curr_lineno++;
-		BEGIN(0);
-}
 <STRING_ERR>\n
 {
-		curr_lineno++;
 		BEGIN(0);
+		curr_lineno++;
 }
+
 
 <STRING_ERR>. {	}
 
